@@ -1,4 +1,4 @@
-# PixelArtGenerator
+# PixelArt
 ## A Simple GUI tool for generating pixelated images
 
 <br>
