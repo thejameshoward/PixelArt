@@ -6,4 +6,9 @@
 ## Installation
 1. Clone the repository into a folder<br><br>
 
-        git clone 
+        git clone https://github.com/thejameshoward/EKKOTools
+
+2. Enter the directory and initalize the GUI
+
+        cd PixelArt
+        python3 gui.py
