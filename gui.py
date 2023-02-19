@@ -65,11 +65,18 @@ class application:
         self.scale_y.grid(row=1, column=1)
         Label(slider_frame, text='Resample height').grid(row=2, column=1, padx=15)
 
+
+        # Saturation and contrast slider
         self.contrast_slider.grid(row=1, column=2)
         Label(slider_frame, text='Contrast').grid(row=2, column=2)
 
         self.color_slider.grid(row=1, column=3)
         Label(slider_frame, text='Saturation').grid(row=2, column=3)
+
+        # Keep the current saturation and contrast stored so that we don't
+        # Update it if we aren't actively changing it
+        self.currentContrast = self.GetContrast(None)
+        self.currentSaturation = self.GetColor(None)
 
         # Entry boxes
         self.bases = tk.Entry(slider_frame, width=4)
@@ -97,7 +104,7 @@ class application:
 
         self.left_im = Label(image_frame, image=self.im1)
         self.right_im = Label(image_frame, image=self.im2)
-        
+
         self.left_im.grid(row=0, column=0)
         self.right_im.grid(row=0, column=1)
 
@@ -113,6 +120,7 @@ class application:
         if self.raw_image == None:
             return 0
 
+        # Get the PIL image 
         pixel_art_pil = self.GetPixelArtDisplayImage(self.im1, self.resample, (1600,2400))
         self.im2 = pixel_art_pil.resize((self.im1.width, self.im1.height))
         self._DrawImages(None)
@@ -145,14 +153,16 @@ class application:
         if debug: print(string_variable.get())
         sv = int(''.join([char for char in string_variable.get() if str(char).isnumeric()]))
 
+        # Set the original image to the 
         self.im1 = ReduceBitsPerColorChannel(self.raw_scaled, sv)
             
-        self.UpdatePixelatedImage()
+        self.UpdatePixelatedImage(event=None)
         self._DrawImages(event=None)
 
 
     def UpdateImageEnhancements(self, event):
         contrast = self.GetContrast(None)
+        saturation = self.GetColor(None)
 
         if self.raw_scaled == None:
             return 0
@@ -160,13 +170,15 @@ class application:
         # Get new image by applying enhancements to the raw image that is scaled
         edited = self.raw_scaled
         edited = ImageEnhance.Contrast(edited).enhance(contrast)
-        edited = ImageEnhance.Color(edited).enhance(self.GetColor(None))
+        edited = ImageEnhance.Color(edited).enhance(saturation)
         self.im1 = edited
-        self.UpdatePixelatedImage()
+        self.UpdatePixelatedImage(event=None)
 
-    def UpdatePixelatedImage(self):
+    def UpdatePixelatedImage(self, event):
         pixel_art_pil = self.GetPixelArtDisplayImage(self.im1, self.resample, (1600,2400))
         self.im2 = pixel_art_pil.resize((self.im1.width, self.im1.height))
+
+        #self.UpdateImageEnhancements(None)
         self._DrawImages(None)
 
     def GetPixelArtDisplayImage(self,

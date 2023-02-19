@@ -53,6 +53,9 @@ def ImgToMonomer(
     n_monomers: int = 4, 
     print_data: bool = True
     ):
+    '''
+    Does something but I don't remember what
+    '''
     pixels = []
     for row in range(img.width):
         for column in range(img.height):
