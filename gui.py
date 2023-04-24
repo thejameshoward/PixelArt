@@ -220,9 +220,9 @@ class application:
         # Rescale draw width and height
         size = (int(size[0] / scale), int(size[1] / scale))
         # Set the PIL im1 to the appropriate size
-        self.im1 = im1.resize(size)
+        self.im1 = im1.resize(size, resample=Image.NEAREST)
         # Raw_scaled
-        self.raw_scaled = im1.resize(size)
+        self.raw_scaled = im1.resize(size, resample = Image.NEAREST)
         # Get the pixel art
         self.resample = (self.GetScaleX(None), self.GetScaleY(None))
         pixel_art_pil = self.GetPixelArtDisplayImage(im1, self.resample, (1600,2400))

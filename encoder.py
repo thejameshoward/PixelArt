@@ -71,7 +71,6 @@ def ImgToMonomer(
             pixel = [EncodeNumber(x, base=n_monomers) for x in data]
             pixels.append(pixel)
             if print_data: print(pixel)
-        pixels.append('')
         if print_data: print('\n')
     return pixels
 
@@ -79,19 +78,14 @@ def _format(s):
     return str(s).replace(' ', '').rjust(2, ' ')
 
 if __name__ == "__main__":
-    p = Path('./images/morgansmall.png')
+    import sys
+
+    p = Path(sys.argv[1])
     img = Image.open(p)
 
-    #EncodeNumber(278523450, base=52, verbose=True)
+    pixels = ImgToMonomer(img, n_monomers=int(sys.argv[2]), print_data=False)
 
-    pixels = ImgToMonomer(img, n_monomers=16, print_data=False)
-
-    for p in pixels:
-        if p == '':
-            print(',,,')
-        else:
-            print(_format(p[0]) + ',' + _format(p[1]) + ',' + _format(p[2]) + ',')
-            #print(p)
-            #for color in p:
-            #    print(''.join([x for x in color if x != ' ']))
-            #    print('\t')
+    with open('out.txt', 'w') as o:
+        for item in pixels:
+            o.write(str(item))
+            o.write(' ')
