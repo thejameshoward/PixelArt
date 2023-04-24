@@ -19,7 +19,7 @@ Outputs a file in the same directory as the input file except with the correct n
         python3 colordepth.py all-colors-raw.png 2
 
 
-![input image](https://github.com/thejameshoward/PixelArt/blob/main/images/all-color-raw.png?raw=true)
+![input image](https://github.com/thejameshoward/PixelArt/blob/main/images/all-colors-raw.png?raw=true)
 
 ![resulting image](https://github.com/thejameshoward/PixelArt/blob/main/images/all-colors-raw-converted.png?raw=true)
 
