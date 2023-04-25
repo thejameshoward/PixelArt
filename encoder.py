@@ -1,6 +1,7 @@
 from pathlib import Path
 from PIL import Image
 import string
+import numpy as np
 
 def GenMonomerRepresentation(
     base_representation: list[int]) -> list:
@@ -48,6 +49,7 @@ def EncodeNumber(
     
     return ' '.join(str(x) for x in monomer_represenation)
 
+""" Deprecated
 def ImgToMonomer(
     img: Image, 
     n_monomers: int = 4, 
@@ -73,6 +75,24 @@ def ImgToMonomer(
             if print_data: print(pixel)
         if print_data: print('\n')
     return pixels
+"""
+
+def ImgToMonomer(
+    img: Image.Image, 
+    n_monomers: int = 4, 
+    print_data: bool = True
+    ):
+    '''
+    Array work
+    '''
+    img = img.convert('RGB')
+    pixels = np.array(img)
+    pixels = np.vectorize(EncodeNumber)(pixels)
+    
+    return pixels
+
+def rgb2hex(r,g,b):
+    return "#{:02x}{:02x}{:02x}".format(r,g,b)
 
 def _format(s):
     return str(s).replace(' ', '').rjust(2, ' ')

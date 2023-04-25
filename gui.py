@@ -6,9 +6,14 @@ from PIL import Image, ImageEnhance, ImageTk
 import tkinter as tk
 from tkinter import END,Label, filedialog as fd
 from tkinter import Button
+import openpyxl
+import numpy as np
 
-from encoder import ImgToMonomer
+
+from encoder import ImgToMonomer, rgb2hex
 from colordepth import ReduceBitsPerColorChannel
+
+from copy import copy
 
 debug = True
 
@@ -43,6 +48,7 @@ class application:
         Button(button_frame, text='384-wellplate', fg='#000000', width=11, command=lambda: self.set_size(None, size=(16,24)), bg='brown').grid(row=0, column=3)
         Button(button_frame, text='PrintRGB', fg='#000000', width=11,command=self.PrintRGB, bg='brown').grid(row=1, column=0)
         Button(button_frame, text='Save', fg='#000000', width=11,command=self.SaveImage, bg='brown').grid(row=1, column=1)
+        Button(button_frame, text='Export RGB', fg='#000000', width=11,command=self.ExportExcel, bg='brown').grid(row=1, column=2)
 
         # Sliders
         slider_frame = tk.Frame(self.root)
@@ -109,6 +115,69 @@ class application:
         self.right_im.grid(row=0, column=1)
 
         self.root.mainloop()
+
+    def ExportExcel(self):
+        if self.im1 == None:
+            MsgBox = tk.messagebox.showerror('Could not print RBG','You must have an active image\nto print the RGB values', icon = 'warning')
+            return 0
+
+        f = fd.asksaveasfilename(defaultextension='.xlsx')
+
+        # Check if a file was selected
+        if f == '':
+            return 1
+        
+        print(f)
+
+        wb = openpyxl.Workbook()
+        wb.create_sheet('encodings')
+        encoding_sheet = wb['encodings']
+
+        # Testing
+        sheet = wb["Sheet"]
+        sheet["D5"] = "I'm cell D5"
+
+        # Get the encoding
+        base = self.GetEncodingBase()
+        resample = (self.GetScaleX(None), self.GetScaleY(None))
+        img = self.im1.resize(resample)
+        encoding = ImgToMonomer(img, n_monomers=base, print_data=False)
+
+        # Get the raw pixel data for coloring
+        img = img.convert('RGB')
+        pixels = np.array(img)
+
+        for row_num, row in enumerate(pixels):
+            for column_num, column in enumerate(row):
+                # Get color in aRGB
+                color = 'FF' + rgb2hex(column[0], column[1], column[2])[1:] # Remove the hashmark
+
+                # Find the cell we're looking at
+                cell = sheet.cell(row = row_num + 1, column = column_num + 1)
+                encoding_cell = encoding_sheet.cell(row = row_num + 1, column = column_num + 1)
+
+                # Change the value to encoding or the rgb
+                cell.value = ' '.join(str(x) for x in column)
+                encoding_cell.value = ''.join(str(x) for x in encoding[row_num][column_num]) # No space because space has meaning for encodings
+
+                new_style = copy(cell.font)
+                new_style.color = color
+                cell.font = new_style
+                encoding_cell.font = new_style
+
+                cell.fill = openpyxl.styles.fills.GradientFill(type='linear', stop=[color, color])
+                encoding_cell.fill = openpyxl.styles.fills.GradientFill(type='linear', stop=[color, color])
+                cell.number_format = openpyxl.styles.numbers.FORMAT_TEXT
+                encoding_cell.number_format = openpyxl.styles.numbers.FORMAT_TEXT
+
+                sheet.column_dimensions[openpyxl.utils.get_column_letter(column_num + 1)].width = 3
+                encoding_sheet.column_dimensions[openpyxl.utils.get_column_letter(column_num + 1)].width = 3
+
+            #sheet.row_dimensions[row_num + 1].height = 3
+
+
+        wb.save(f)
+
 
     def resize(self, event):
         '''
@@ -242,15 +311,8 @@ class application:
         self.left_im.config(image=self.tk_im1)
         self.right_im.config(image=self.tk_im2)
 
-    def PrintRGB(self):
-        if self.im1 == None:
-            MsgBox = tk.messagebox.showerror('Could not print RBG','You must have an active image\nto print the RGB values', icon = 'warning')
-            return 0
-        resample = (self.GetScaleX(None), self.GetScaleY(None))
-        img = self.im1.resize(resample)
+    def GetEncodingBase(self) -> int:
         base = self.bases.get()
-        
-        self.output_text.delete('1.0', END)
 
         if base == '':
             base = 4
@@ -266,7 +328,22 @@ class application:
             self.bases.delete(0, END)
             self.bases.insert(0, str(4))
 
-        ImgToMonomer(img, n_monomers=base)
+        return int(base)
+
+    def PrintRGB(self):
+        if self.im1 == None:
+            MsgBox = tk.messagebox.showerror('Could not print RBG','You must have an active image\nto print the RGB values', icon = 'warning')
+            return 0
+        resample = (self.GetScaleX(None), self.GetScaleY(None))
+        img = self.im1.resize(resample)
+        
+        self.output_text.delete('1.0', END)
+
+        base = self.GetEncodingBase()
+
+        encodings = ImgToMonomer(img, n_monomers=base)
+
+        print(encodings)
 
 
     def SaveImage(self):
