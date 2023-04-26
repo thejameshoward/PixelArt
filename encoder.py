@@ -87,9 +87,15 @@ def ImgToMonomer(
     '''
     img = img.convert('RGB')
     pixels = np.array(img)
-    pixels = np.vectorize(EncodeNumber)(pixels)
-    
-    return pixels
+    encoding = pixels.copy().astype(dtype=object)
+    encoding = encoding[:, :, 0] # Remove 3rd dimension so we can put strings in there
+    for i, col in enumerate(pixels):
+        for j, row in enumerate(col):
+            s = []
+            for k, color in enumerate(row):
+                s.append(EncodeNumber(number = int(color), base=n_monomers))
+            encoding[i][j] = f'{s[0]}, {s[1]}, {s[2]}'
+    return encoding
 
 def rgb2hex(r,g,b):
     return "#{:02x}{:02x}{:02x}".format(r,g,b)
