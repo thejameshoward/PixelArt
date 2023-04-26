@@ -8,9 +8,13 @@
 
         git clone https://github.com/thejameshoward/PixelArt
 
-2. Enter the directory and initalize the GUI
+2. Enter the directory and install requirements
 
         cd PixelArt
+        pip install -r requirements.txt
+
+3. Initialize the gui
+
         python3 gui.py
 
 ## Using as a bit-depth reducer
