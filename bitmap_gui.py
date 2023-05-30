@@ -98,7 +98,12 @@ class application:
 
         wb = openpyxl.Workbook()
         wb.create_sheet('encodings')
+        wb.create_sheet('channels')
         encoding_sheet = wb['encodings']
+        channel_sheet = wb['channels']
+
+        # For making a long string of just the channel values for compression.
+        r, g, b = [], [], []
 
         # Testing
         sheet = wb["Sheet"]
@@ -113,8 +118,12 @@ class application:
 
         for row_num, row in enumerate(pixels):
             for column_num, column in enumerate(row):
+
                 # Get color in aRGB
                 color = 'FF' + rgb2hex(column[0], column[1], column[2])[1:] # Remove the hashmark
+                r.append(column[0])
+                g.append(column[1])
+                b.append(column[2])
 
                 # Find the cell we're looking at
                 cell = sheet.cell(row = row_num + 1, column = column_num + 1)
@@ -138,6 +147,26 @@ class application:
                 encoding_sheet.column_dimensions[openpyxl.utils.get_column_letter(column_num + 1)].width = 3
 
             #sheet.row_dimensions[row_num + 1].height = 3
+
+        # Write RGB HEX values to the channels sheet
+        channel_sheet.cell(row = 1, column = 1).value = 'Pixel'
+        channel_sheet.cell(row = 1, column = 2).value = 'R'
+        channel_sheet.cell(row = 1, column = 3).value = 'G'
+        channel_sheet.cell(row = 1, column = 4).value = 'B'
+
+        channel_sheet.cell(row = 1, column = 6).value = 'R (HEX)'
+        channel_sheet.cell(row = 1, column = 7).value = 'G (HEX)'
+        channel_sheet.cell(row = 1, column = 8).value = 'B (HEX)'
+        for i, rgb in enumerate(zip(r,g,b)):
+            channel_sheet.cell(row = 2 + i, column = 1).value = str(i+1)
+            channel_sheet.cell(row = 2 + i, column = 2).value = rgb[0]
+            channel_sheet.cell(row = 2 + i, column = 3).value = rgb[1]
+            channel_sheet.cell(row = 2 + i, column = 4).value = rgb[2]
+
+            channel_sheet.cell(row = 2 + i, column = 6).value = '{:02x}'.format(rgb[0])
+            channel_sheet.cell(row = 2 + i, column = 7).value = '{:02x}'.format(rgb[1])
+            channel_sheet.cell(row = 2 + i, column = 8).value = '{:02x}'.format(rgb[2])
+            
 
 
         wb.save(f)

@@ -49,42 +49,17 @@ def EncodeNumber(
     
     return ' '.join(str(x) for x in monomer_represenation)
 
-""" Deprecated
-def ImgToMonomer(
-    img: Image, 
-    n_monomers: int = 4, 
-    print_data: bool = True
-    ):
-    '''
-    Does something but I don't remember what
-    '''
-    pixels = []
-    for row in range(img.width):
-        for column in range(img.height):
-            data = img.getpixel((row, column))
-            # If contains alpha channel
-            if len(data) == 4:
-                r,g,b,a = data
-            elif len(data) == 3:
-                r,g,b = data
-            else:
-                raise Exception('Could not unpack pixel data')
-            data = [r,g,b]
-            pixel = [EncodeNumber(x, base=n_monomers) for x in data]
-            pixels.append(pixel)
-            if print_data: print(pixel)
-        if print_data: print('\n')
-    return pixels
-"""
-
 def ImgToMonomer(
     img: Image.Image, 
     n_monomers: int = 4, 
-    print_data: bool = True
+    print_data: bool = True, 
+    divide_by_16 = True,
     ):
     '''
     Array work
     '''
+    #TODO Figure out the divide by 16 issue (remove argument)
+
     img = img.convert('RGB')
     pixels = np.array(img)
     encoding = pixels.copy().astype(dtype=object)
@@ -93,6 +68,8 @@ def ImgToMonomer(
         for j, row in enumerate(col):
             s = []
             for k, color in enumerate(row):
+                if divide_by_16:
+                    color = int(color / 16)
                 s.append(EncodeNumber(number = int(color), base=n_monomers))
             encoding[i][j] = f'{s[0]}, {s[1]}, {s[2]}'
     return encoding
@@ -104,6 +81,7 @@ def _format(s):
     return str(s).replace(' ', '').rjust(2, ' ')
 
 if __name__ == "__main__":
+    """
     import sys
 
     p = Path(sys.argv[1])
@@ -115,3 +93,6 @@ if __name__ == "__main__":
         for item in pixels:
             o.write(str(item))
             o.write(' ')
+            o.write('\n')
+    """
+    EncodeNumber(0, 16, verbose=True)
