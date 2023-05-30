@@ -96,17 +96,10 @@ class application:
         
         print(f)
 
-        wb = openpyxl.Workbook()
-        wb.create_sheet('encodings')
-        wb.create_sheet('channels')
-        encoding_sheet = wb['encodings']
-        channel_sheet = wb['channels']
+
 
         # For making a long string of just the channel values for compression.
         r, g, b = [], [], []
-
-        # Testing
-        sheet = wb["Sheet"]
 
         # Get the encoding
         base = self.GetEncodingBase()
@@ -116,8 +109,31 @@ class application:
         img = img.convert('RGB')
         pixels = np.array(img)
 
+        # Getting the h/w for formatting excel document
+        # Probably a way better way to do this on the fly, but I'm lazy
+        height, width = pixels.shape[0], pixels.shape[1]
+
+        wb = openpyxl.Workbook()
+        wb.create_sheet('encodings')
+        wb.create_sheet('channels')
+        encoding_sheet = wb['encodings']
+        channel_sheet = wb['channels']
+        sheet = wb['Sheet']
+
+        # Setup channels sheet
+        channel_sheet.cell(row = 1, column = 1).value = 'Pixel'
+        channel_sheet.cell(row = 1, column = 2).value = 'R'
+        channel_sheet.cell(row = 1, column = 3).value = 'G'
+        channel_sheet.cell(row = 1, column = 4).value = 'B'
+        channel_sheet.cell(row = 1, column = 6).value = 'R (HEX)'
+        channel_sheet.cell(row = 1, column = 7).value = 'G (HEX)'
+        channel_sheet.cell(row = 1, column = 8).value = 'B (HEX)'
+
+        pixel_count = 0
+        offset = 0
         for row_num, row in enumerate(pixels):
             for column_num, column in enumerate(row):
+                pixel_count += 1
 
                 # Get color in aRGB
                 color = 'FF' + rgb2hex(column[0], column[1], column[2])[1:] # Remove the hashmark
@@ -146,28 +162,18 @@ class application:
                 sheet.column_dimensions[openpyxl.utils.get_column_letter(column_num + 1)].width = 3
                 encoding_sheet.column_dimensions[openpyxl.utils.get_column_letter(column_num + 1)].width = 3
 
+                # Channel stuff
+                channel_sheet.cell(row = 2 + pixel_count + offset, column = 1).value = pixel_count
+                channel_sheet.cell(row = 2 + pixel_count + offset, column = 2).value = column[0]
+                channel_sheet.cell(row = 2 + pixel_count + offset, column = 3).value = column[1]
+                channel_sheet.cell(row = 2 + pixel_count + offset, column = 4).value = column[2]
+
+                channel_sheet.cell(row = 2 + pixel_count + offset, column = 6).value = '{:02x}'.format(column[0])
+                channel_sheet.cell(row = 2 + pixel_count + offset, column = 7).value = '{:02x}'.format(column[1])
+                channel_sheet.cell(row = 2 + pixel_count + offset, column = 8).value = '{:02x}'.format(column[2])
+            offset += 1
+
             #sheet.row_dimensions[row_num + 1].height = 3
-
-        # Write RGB HEX values to the channels sheet
-        channel_sheet.cell(row = 1, column = 1).value = 'Pixel'
-        channel_sheet.cell(row = 1, column = 2).value = 'R'
-        channel_sheet.cell(row = 1, column = 3).value = 'G'
-        channel_sheet.cell(row = 1, column = 4).value = 'B'
-
-        channel_sheet.cell(row = 1, column = 6).value = 'R (HEX)'
-        channel_sheet.cell(row = 1, column = 7).value = 'G (HEX)'
-        channel_sheet.cell(row = 1, column = 8).value = 'B (HEX)'
-        for i, rgb in enumerate(zip(r,g,b)):
-            channel_sheet.cell(row = 2 + i, column = 1).value = str(i+1)
-            channel_sheet.cell(row = 2 + i, column = 2).value = rgb[0]
-            channel_sheet.cell(row = 2 + i, column = 3).value = rgb[1]
-            channel_sheet.cell(row = 2 + i, column = 4).value = rgb[2]
-
-            channel_sheet.cell(row = 2 + i, column = 6).value = '{:02x}'.format(rgb[0])
-            channel_sheet.cell(row = 2 + i, column = 7).value = '{:02x}'.format(rgb[1])
-            channel_sheet.cell(row = 2 + i, column = 8).value = '{:02x}'.format(rgb[2])
-            
-
 
         wb.save(f)
 
